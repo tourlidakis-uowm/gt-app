@@ -1,7 +1,7 @@
 {
-  "name": "Gas Turbine Analyzer",
-  "short_name": "Turbines",
-  "description": "Αναλυτής Θερμοδυναμικών Κύκλων Αεριοστροβίλων",
+  "name": "Gas Turbine Analysis",
+  "short_name": "Gas Turbines",
+  "description": "Gas Turbine Thermodynamic Analysis",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f4f6f8",
