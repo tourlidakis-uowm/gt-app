@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#2c3e50">
 <link rel="apple-touch-icon" href="icon-192.png">
 
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
@@ -35,14 +36,17 @@
         }
 
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.6; }
-        .header { text-align: center; margin-bottom: 30px; color: var(--primary); }
+        .header { text-align: center; margin-bottom: 25px; color: var(--primary); }
         .container { max-width: 1550px; margin: auto; display: grid; grid-template-columns: 360px 1fr; gap: 25px; }
-        .card { background: var(--surface); padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        h2, h3 { color: var(--primary); margin-top: 0; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+        
+        /* Cards */
+        .card { background: var(--surface); padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h2 { color: var(--primary); margin-top: 0; border-bottom: 2px solid var(--bg); padding-bottom: 10px; font-size: 1.3em;}
+        h3 { color: var(--primary); margin-top: 0; margin-bottom: 15px; font-size: 1.1em;}
         .section-title { font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px; color: #7f8c8d; margin-top: 20px; margin-bottom: 10px; font-weight: bold; }
 
         /* Menu Selector */
-        .engine-selector { width: 100%; padding: 12px; font-size: 1.1em; font-weight: bold; color: white; background-color: var(--primary); border: none; border-radius: 6px; margin-bottom: 20px; cursor: pointer; outline: none; }
+        .engine-selector { width: 100%; padding: 12px; font-size: 1.1em; font-weight: bold; color: white; background-color: var(--primary); border: none; border-radius: 6px; margin-bottom: 10px; cursor: pointer; outline: none; }
         .engine-selector:focus { box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.5); }
         .engine-selector option { background-color: white; color: var(--primary); }
 
@@ -57,27 +61,38 @@
         .export-btn{ width:100%;padding:14px;border-radius:6px; background:var(--success);color:#fff; font-weight:700;font-size:14px; letter-spacing:1px;text-transform:uppercase; border:none;cursor:pointer;transition:background 0.2s; }
         .export-btn:hover{background:#219653}
 
+        /* --- TABS SYSTEM --- */
+        .tabs { display: flex; background: var(--surface); border-radius: 10px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .tab { flex: 1; text-align: center; padding: 16px 10px; font-weight: bold; color: #7f8c8d; cursor: pointer; transition: all 0.3s ease; border-bottom: 3px solid transparent; font-size: 0.95em; }
+        .tab:hover { background: #f8fafc; color: var(--primary); }
+        .tab.active { color: var(--secondary); border-bottom-color: var(--secondary); background: #f4f9fd; }
+        .tab-content { display: none; animation: fadeIn 0.4s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
         /* Schematic */
-        .schematic { display: flex; justify-content: space-around; align-items: center; background: var(--primary); padding: 40px 10px; border-radius: 8px; overflow-x: auto; min-height: 80px; color: white; font-weight: bold; position: relative;}
-        .stage-box { background: var(--surface); color: var(--primary); padding: 10px 15px; border-radius: 6px; z-index: 2; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); font-size: 0.9em; position: relative;}
-        .arrow { flex-grow: 1; height: 4px; background: var(--secondary); margin: 0 5px; position: relative; min-width: 20px; }
+        .schematic { display: flex; justify-content: space-around; align-items: center; background: var(--primary); padding: 35px 10px; border-radius: 8px; overflow-x: auto; min-height: 80px; color: white; font-weight: bold; position: relative;}
+        .stage-box { background: var(--surface); color: var(--primary); padding: 10px 15px; border-radius: 6px; z-index: 2; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); font-size: 0.85em; position: relative;}
+        .arrow { flex-grow: 1; height: 4px; background: var(--secondary); margin: 0 5px; position: relative; min-width: 15px; }
         .arrow::after { content: ''; position: absolute; right: 0; top: -6px; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 12px solid var(--secondary); }
         .shaft { position: absolute; height: 4px; background: var(--power); top: 50%; transform: translateY(-50%); z-index: 1; left: 60px; right: 200px; }
 
         /* Metrics */
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .metric-card { background: var(--secondary); color: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0, 0.1); }
-        .metric-card span { display: block; font-size: 1.8em; font-weight: bold; margin-top: 5px; font-family: var(--mono); }
-        .metric-card small { font-size: 0.85em; opacity: 0.9; }
+        .metric-card span { display: block; font-size: 1.6em; font-weight: bold; margin-top: 5px; font-family: var(--mono); }
+        .metric-card small { font-size: 0.8em; opacity: 0.9; }
 
-        /* Table & Charts */
-        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
-        th, td { padding: 10px 12px; text-align: center; border-bottom: 1px solid #e1e8ed; }
+        /* Layouts & Tables */
+        .split-view { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
+        .split-view .card { margin-bottom: 0; display: flex; flex-direction: column; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+        th, td { padding: 10px 8px; text-align: center; border-bottom: 1px solid #e1e8ed; }
         th { background-color: var(--bg); color: var(--primary); font-weight: 600; }
         tr:hover { background-color: #f8fafc; }
         .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .chart-container { position: relative; height: 400px; width: 100%; min-width: 0;}
-        .plotly-container { width: 100%; height: 420px; }
+        .plotly-container { width: 100%; height: 400px; }
 
         /* Theory */
         .theory { font-size: 0.95em; color: #444; }
@@ -87,14 +102,14 @@
         .theory p { margin-bottom: 10px; }
         .math-block { background: #fdfdfd; padding: 15px; border-left: 4px solid var(--secondary); margin: 15px 0; overflow-x: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
 
-        @media (max-width: 1100px) { .container { grid-template-columns: 1fr; } .charts-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 1100px) { .container { grid-template-columns: 1fr; } .charts-grid { grid-template-columns: 1fr; } .split-view { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>Ultimate Gas Turbine Engine Analyzer</h1>
-        <p>Comprehensive Thermodynamic Cycle Analysis for 7 Aero and Stationary Architectures</p>
+        <p>Comprehensive Thermodynamic Cycle Analysis for Aero and Stationary Architectures</p>
     </div>
 
     <div class="container">
@@ -190,75 +205,91 @@
         </div>
 
         <div style="min-width: 0;">
-            <div class="card">
-                <h3 id="schematicTitle">Engine Architecture</h3>
-                <div class="schematic" id="schematicContainer">
+            
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('tab-overview', this)">Overview & Metrics</div>
+                <div class="tab" onclick="switchTab('tab-ts', this)">T-s Diagram & Data</div>
+                <div class="tab" onclick="switchTab('tab-flight', this)">Flight Envelope</div>
+                <div class="tab" onclick="switchTab('tab-maps', this)">Design Maps</div>
+                <div class="tab" onclick="switchTab('tab-theory', this)">Theory</div>
+            </div>
+
+            <div id="tab-overview" class="tab-content active">
+                <div class="card">
+                    <h3 id="schematicTitle">Engine Architecture</h3>
+                    <div class="schematic" id="schematicContainer"></div>
+                </div>
+                <div class="metrics-grid" id="metricsGrid"></div>
+            </div>
+
+            <div id="tab-ts" class="tab-content">
+                <div class="split-view">
+                    <div class="card">
+                        <h3>Temperature-Entropy (T-s) Diagram</h3>
+                        <p style="font-size: 0.9em; color: #555;">Visualizes the thermodynamic cycle path. The loop is visually closed back to ambient conditions (Station 0).</p>
+                        <div class="chart-container" style="flex-grow: 1;">
+                            <canvas id="tsChart"></canvas>
+                        </div>
                     </div>
-            </div>
-
-            <div class="metrics-grid" id="metricsGrid">
-                </div>
-
-            <div class="card">
-                <h3>Design Maps: Optimization Contours</h3>
-                <p style="font-size: 0.9em; color: #555;">Evaluates the engine across a massive array of CPR and TIT combinations. Note: SFC values are capped visually to prevent highly inefficient low-power regions from washing out the color scale.</p>
-                <div class="charts-grid">
-                    <div class="chart-container"><div id="contourMain" class="plotly-container"></div></div>
-                    <div class="chart-container"><div id="contourSFC" class="plotly-container"></div></div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>Flight Envelope Parametric Study</h3>
-                <p style="font-size: 0.9em; color: #555;">Evaluates engine performance across different flight speeds (Mach) and Altitudes (Density drops). Note the Ram Recovery effect at higher Mach numbers.</p>
-                <div class="charts-grid">
-                    <div class="chart-container"><canvas id="paramMainChart"></canvas></div>
-                    <div class="chart-container"><canvas id="paramSfcChart"></canvas></div>
+                    <div class="card">
+                        <h3>Thermodynamic States</h3>
+                        <div style="overflow-x: auto; flex-grow: 1;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Station</th>
+                                        <th>Description</th>
+                                        <th>Temp (K)</th>
+                                        <th>Pressure (kPa)</th>
+                                        <th>Entropy (J/kg·K)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dataTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="card">
-                <h3>Temperature-Entropy (T-s) Diagram</h3>
-                <div class="chart-container">
-                    <canvas id="tsChart"></canvas>
+            <div id="tab-flight" class="tab-content">
+                <div class="card">
+                    <h3>Flight Envelope Parametric Study</h3>
+                    <p style="font-size: 0.9em; color: #555;">Evaluates engine performance across different flight speeds (Mach) and Altitudes (Density drops). Note the Ram Recovery effect at higher Mach numbers.</p>
+                    <div class="charts-grid">
+                        <div class="chart-container"><canvas id="paramMainChart"></canvas></div>
+                        <div class="chart-container"><canvas id="paramSfcChart"></canvas></div>
+                    </div>
                 </div>
             </div>
 
-            <div class="card">
-                <h3>Thermodynamic State at Each Station</h3>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Station</th>
-                                <th>Description</th>
-                                <th>Temp (K)</th>
-                                <th>Pressure (kPa)</th>
-                                <th>Entropy (J/kg·K)</th>
-                                <th>Velocity (m/s)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dataTable">
-                            </tbody>
-                    </table>
+            <div id="tab-maps" class="tab-content">
+                <div class="card">
+                    <h3>Design Maps: Optimization Contours</h3>
+                    <p style="font-size: 0.9em; color: #555;">Evaluates the engine across a massive array of CPR and TIT combinations. Note: SFC values are capped visually to prevent highly inefficient low-power regions from washing out the color scale.</p>
+                    <div class="charts-grid">
+                        <div class="chart-container"><div id="contourMain" class="plotly-container"></div></div>
+                        <div class="chart-container"><div id="contourSFC" class="plotly-container"></div></div>
+                    </div>
                 </div>
             </div>
 
-            <div class="card theory" id="theoryContainer">
-                </div>
+            <div id="tab-theory" class="tab-content">
+                <div class="card theory" id="theoryContainer"></div>
+            </div>
+
         </div>
     </div>
 
     <script>
-        // Ensure ChartDataLabels plugin is registered safely
+        // Ensure ChartDataLabels plugin is registered
         if (typeof ChartDataLabels !== 'undefined') {
             Chart.register(ChartDataLabels);
         }
 
         // Global Constants
-        const R = 287.05; // J/kg-K
-        const g = 9.80665; // m/s^2
-        const QR = 43200000; // J/kg
+        const R = 287.05; 
+        const g = 9.80665; 
+        const QR = 43200000; 
         const cpc = 1004, gammac = 1.40;
         const cph = 1148, gammah = 1.33;
 
@@ -266,6 +297,26 @@
         let paramMainInst = null;
         let paramSfcInst = null;
         let globalData = {}; 
+
+        // --- TAB SWITCHING LOGIC ---
+        function switchTab(tabId, tabElement) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            tabElement.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+
+            // Force resize event for Chart.js
+            window.dispatchEvent(new Event('resize'));
+            
+            // Explicitly resize Plotly if we are opening the maps tab
+            if (tabId === 'tab-maps') {
+                if (document.getElementById('contourMain').data) {
+                    Plotly.Plots.resize('contourMain');
+                    Plotly.Plots.resize('contourSFC');
+                }
+            }
+        }
 
         // --- Atmosphere Model ---
         function getAtmosphere(h) {
@@ -356,14 +407,19 @@
                     { t: "Status", v: noz.isChoked?"CHOKED":"UNCHOKED", u: "Nozzle", c: noz.isChoked?"#e74c3c":"#27ae60" }
                 ],
                 stations: [
-                    { st:"0", d:"Ambient", T:inp.T0, P:inp.P0, s:s[0], v:V0 },
-                    { st:"1", d:"Intake", T:T1, P:P1, s:s[1], v:0 },
-                    { st:"2", d:"Comp Exit", T:T2, P:P2, s:s[2], v:0 },
-                    { st:"3", d:"Turbine In", T:inp.T3, P:P3, s:s[3], v:0 },
-                    { st:"4", d:"Turbine Exit", T:T4, P:P4, s:s[4], v:0 },
-                    { st:"5", d:"Nozzle Exit", T:noz.T_exit, P:noz.P_exit, s:s[5], v:noz.V_exit }
+                    { st:"0", d:"Ambient", T:inp.T0, P:inp.P0, s:s[0] },
+                    { st:"1", d:"Intake", T:T1, P:P1, s:s[1] },
+                    { st:"2", d:"Comp Exit", T:T2, P:P2, s:s[2] },
+                    { st:"3", d:"Turbine In", T:inp.T3, P:P3, s:s[3] },
+                    { st:"4", d:"Turbine Exit", T:T4, P:P4, s:s[4] },
+                    { st:"5", d:"Nozzle Exit", T:noz.T_exit, P:noz.P_exit, s:s[5] }
                 ],
-                plots: [{ l: 'Turbojet', c: '#e74c3c', s: s, T: [inp.T0, T1, T2, inp.T3, T4, noz.T_exit], labels: labels }]
+                plots: [{ 
+                    l: 'Turbojet', c: '#e74c3c', 
+                    s: [...s, s[0]], 
+                    T: [inp.T0, T1, T2, inp.T3, T4, noz.T_exit, inp.T0], 
+                    labels: [...labels, ''] 
+                }]
             };
         }
 
@@ -417,18 +473,18 @@
                     { t: "Core Thrust", v: (f_c/1000).toFixed(1), u: "kN", c: "#e74c3c" }
                 ],
                 stations: [
-                    { st:"0", d:"Ambient", T:inp.T0, P:inp.P0, s:sC[0], v:V0 },
-                    { st:"1", d:"Intake", T:T1, P:P1, s:sC[1], v:0 },
-                    { st:"13", d:"Fan Exit", T:T13, P:P13, s:sB[2], v:0 },
-                    { st:"2", d:"Core Comp Exit", T:T2, P:P2, s:sC[2], v:0 },
-                    { st:"3", d:"Turbine In", T:inp.T3, P:P3, s:sC[3], v:0 },
-                    { st:"4", d:"Turbine Exit", T:T4, P:P4, s:sC[4], v:0 },
-                    { st:"9", d:"Core Nozzle", T:nozC.T_exit, P:nozC.P_exit, s:sC[5], v:nozC.V_exit },
-                    { st:"19", d:"Bypass Nozzle", T:nozB.T_exit, P:nozB.P_exit, s:sB[3], v:nozB.V_exit }
+                    { st:"0", d:"Ambient", T:inp.T0, P:inp.P0, s:sC[0] },
+                    { st:"1", d:"Intake", T:T1, P:P1, s:sC[1] },
+                    { st:"13", d:"Fan Exit", T:T13, P:P13, s:sB[2] },
+                    { st:"2", d:"Core Comp Exit", T:T2, P:P2, s:sC[2] },
+                    { st:"3", d:"Turbine In", T:inp.T3, P:P3, s:sC[3] },
+                    { st:"4", d:"Turbine Exit", T:T4, P:P4, s:sC[4] },
+                    { st:"9", d:"Core Nozzle", T:nozC.T_exit, P:nozC.P_exit, s:sC[5] },
+                    { st:"19", d:"Bypass Nozzle", T:nozB.T_exit, P:nozB.P_exit, s:sB[3] }
                 ],
                 plots: [
-                    { l: 'Core', c: '#e74c3c', s: sC, T: [inp.T0, T1, T2, inp.T3, T4, nozC.T_exit], labels: labelsCore },
-                    { l: 'Bypass', c: '#3498db', s: sB, T: [inp.T0, T1, T13, nozB.T_exit], labels: labelsByp }
+                    { l: 'Core', c: '#e74c3c', s: [...sC, sC[0]], T: [inp.T0, T1, T2, inp.T3, T4, nozC.T_exit, inp.T0], labels: [...labelsCore, ''] },
+                    { l: 'Bypass', c: '#3498db', s: [...sB, sB[0]], T: [inp.T0, T1, T13, nozB.T_exit, inp.T0], labels: [...labelsByp, ''] }
                 ]
             };
         }
@@ -498,15 +554,15 @@
                 mainLabel: isShaft ? 'Shaft Power (kW)' : 'ESP (kW)', sfcLabel: isShaft ? 'SFC (kg/kWh)' : 'ESFC (kg/kWh)',
                 metrics: mtx,
                 stations: [
-                    { st:"0", d:"Ambient", T:inp.T0, P:inp.P0, s:s[0], v:V0 },
-                    { st:"1", d:"Intake", T:T1, P:P1, s:s[1], v:0 },
-                    { st:"2", d:"Comp Exit", T:T2, P:P2, s:s[2], v:0 },
-                    { st:"3", d:"Turbine In", T:inp.T3, P:P3, s:s[3], v:0 },
-                    { st:"4", d:"GG Turb Exit", T:T4, P:P4, s:s[4], v:0 },
-                    { st:"5", d:"Power Turb Exit", T:T5, P:P5, s:s[5], v:0 },
-                    { st:"9", d:"Exhaust", T:noz.T_exit, P:noz.P_exit, s:s[6], v:noz.V_exit }
+                    { st:"0", d:"Ambient", T:inp.T0, P:inp.P0, s:s[0] },
+                    { st:"1", d:"Intake", T:T1, P:P1, s:s[1] },
+                    { st:"2", d:"Comp Exit", T:T2, P:P2, s:s[2] },
+                    { st:"3", d:"Turbine In", T:inp.T3, P:P3, s:s[3] },
+                    { st:"4", d:"GG Turb Exit", T:T4, P:P4, s:s[4] },
+                    { st:"5", d:"Power Turb Exit", T:T5, P:P5, s:s[5] },
+                    { st:"9", d:"Exhaust", T:noz.T_exit, P:noz.P_exit, s:s[6] }
                 ],
-                plots: [{ l: isShaft?'Turboshaft':'Turboprop', c: '#e67e22', s: s, T: [inp.T0, T1, T2, inp.T3, T4, T5, noz.T_exit], labels: labels }]
+                plots: [{ l: isShaft?'Turboshaft':'Turboprop', c: '#e67e22', s: [...s, s[0]], T: [inp.T0, T1, T2, inp.T3, T4, T5, noz.T_exit, inp.T0], labels: [...labels, ''] }]
             };
         }
 
@@ -592,12 +648,11 @@
                 T_path.push(T4); P_path.push(P4); L_path.push('4');
                 if (hasRegen && isRegenActive) { T_path.push(Ty); P_path.push(P4); L_path.push('y'); }
             }
-            T_path.push(inp.T0); P_path.push(inp.P0); L_path.push('');
 
             const s_path = calcEntropy(T_path, P_path, false);
             const stations = [];
-            for(let i=0; i<T_path.length-1; i++) {
-                stations.push({ st: L_path[i], d: getStationDesc(L_path[i]), T: T_path[i], P: P_path[i], s: s_path[i], v: L_path[i]==='0'?V0:0 });
+            for(let i=0; i<T_path.length; i++) {
+                stations.push({ st: L_path[i], d: getStationDesc(L_path[i]), T: T_path[i], P: P_path[i], s: s_path[i] });
             }
 
             return {
@@ -610,7 +665,7 @@
                     { t: "Regen Active", v: isRegenActive?"YES":"NO", u: "-", c: isRegenActive?"#27ae60":"#7f8c8d" }
                 ],
                 stations: stations,
-                plots: [{ l: 'Power Cycle', c: '#e67e22', s: s_path, T: T_path, labels: L_path }]
+                plots: [{ l: 'Power Cycle', c: '#e67e22', s: [...s_path, s_path[0]], T: [...T_path, T_path[0]], labels: [...L_path, ''] }]
             };
         }
 
@@ -832,8 +887,9 @@
             if(res.isValid) {
                 // Metrics
                 document.getElementById('metricsGrid').innerHTML = res.metrics.map(m => `<div class="metric-card" style="background:${m.c};">${m.t}<span>${m.v}</span><small>${m.u}</small></div>`).join('');
+                
                 // Table
-                document.getElementById('dataTable').innerHTML = res.stations.map(st => `<tr><td>${st.st}</td><td>${st.d}</td><td>${st.T.toFixed(1)}</td><td>${st.P.toFixed(1)}</td><td>${st.s.toFixed(2)}</td><td>${st.v.toFixed(0)}</td></tr>`).join('');
+                document.getElementById('dataTable').innerHTML = res.stations.map(st => `<tr><td>${st.st}</td><td>${st.d}</td><td>${st.T.toFixed(1)}</td><td>${st.P.toFixed(1)}</td><td>${st.s.toFixed(2)}</td>${st.v !== undefined ? `<td>${st.v.toFixed(0)}</td>` : '<td>-</td>'}</tr>`).join('');
                 
                 // T-s Chart
                 const ctxTs = document.getElementById('tsChart').getContext('2d');
@@ -876,7 +932,6 @@
 
             // --- PARAMETRIC SWEEP (Mach lines) ---
             const machArray = [];
-            // Run sweep up to 0.8 to universally show dynamic pressure effects
             for (let m = 0.0; m <= 0.8; m += 0.05) machArray.push(parseFloat(m.toFixed(2)));
 
             const altSweeps = [0, 5000, 10000];
@@ -983,7 +1038,7 @@
 
             csv += "\n--- THERMODYNAMIC STATIONS ---\n";
             csv += "Station,Description,Temperature (K),Pressure (kPa),Entropy (J/kgK),Velocity (m/s)\n";
-            d.results.stations.forEach(st => csv += `${st.st},${st.d},${st.T.toFixed(2)},${st.P.toFixed(2)},${st.s.toFixed(2)},${st.v.toFixed(1)}\n`);
+            d.results.stations.forEach(st => csv += `${st.st},${st.d},${st.T.toFixed(2)},${st.P.toFixed(2)},${st.s.toFixed(2)},${st.v !== undefined ? st.v.toFixed(1) : '-'}\n`);
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
@@ -1013,6 +1068,7 @@
     });
   }
 </script>
+
 
 </body>
 </html>
