@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Gas Turbine Engine Analyzer</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2c3e50">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script>
+      window.MathJax = {
+        tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --purple: #8e44ad;
+            --power: #e67e22;
+            --bg: #f4f6f8;
+            --surface: #ffffff;
+            --text: #333333;
+            --mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.6; }
+        .header { text-align: center; margin-bottom: 30px; color: var(--primary); }
+        .container { max-width: 1550px; margin: auto; display: grid; grid-template-columns: 360px 1fr; gap: 25px; }
+        .card { background: var(--surface); padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        h2, h3 { color: var(--primary); margin-top: 0; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+        .section-title { font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px; color: #7f8c8d; margin-top: 20px; margin-bottom: 10px; font-weight: bold; }
+
+        /* Menu Selector */
+        .engine-selector { width: 100%; padding: 12px; font-size: 1.1em; font-weight: bold; color: white; background-color: var(--primary); border: none; border-radius: 6px; margin-bottom: 20px; cursor: pointer; outline: none; }
+        .engine-selector:focus { box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.5); }
+        .engine-selector option { background-color: white; color: var(--primary); }
+
+        /* Controls */
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: flex; justify-content: space-between; font-weight: 600; font-size: 0.85em; margin-bottom: 5px; color: var(--primary); }
+        .form-group input[type="range"] { width: 100%; cursor: pointer; accent-color: var(--secondary); }
+        .hidden { display: none !important; }
+
+        /* Button */
+        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }
+        .export-btn{ width:100%;padding:14px;border-radius:6px; background:var(--success);color:#fff; font-weight:700;font-size:14px; letter-spacing:1px;text-transform:uppercase; border:none;cursor:pointer;transition:background 0.2s; }
+        .export-btn:hover{background:#219653}
+
+        /* Schematic */
+        .schematic { display: flex; justify-content: space-around; align-items: center; background: var(--primary); padding: 40px 10px; border-radius: 8px; overflow-x: auto; min-height: 80px; color: white; font-weight: bold; position: relative;}
+        .stage-box { background: var(--surface); color: var(--primary); padding: 10px 15px; border-radius: 6px; z-index: 2; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); font-size: 0.9em; position: relative;}
+        .arrow { flex-grow: 1; height: 4px; background: var(--secondary); margin: 0 5px; position: relative; min-width: 20px; }
+        .arrow::after { content: ''; position: absolute; right: 0; top: -6px; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 12px solid var(--secondary); }
+        .shaft { position: absolute; height: 4px; background: var(--power); top: 50%; transform: translateY(-50%); z-index: 1; left: 60px; right: 200px; }
+
+        /* Metrics */
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .metric-card { background: var(--secondary); color: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0, 0.1); }
+        .metric-card span { display: block; font-size: 1.8em; font-weight: bold; margin-top: 5px; font-family: var(--mono); }
+        .metric-card small { font-size: 0.85em; opacity: 0.9; }
+
+        /* Table & Charts */
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        th, td { padding: 10px 12px; text-align: center; border-bottom: 1px solid #e1e8ed; }
+        th { background-color: var(--bg); color: var(--primary); font-weight: 600; }
+        tr:hover { background-color: #f8fafc; }
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .chart-container { position: relative; height: 400px; width: 100%; min-width: 0;}
+        .plotly-container { width: 100%; height: 420px; }
+
+        /* Theory */
+        .theory { font-size: 0.95em; color: #444; }
+        .theory h4 { color: var(--secondary); margin-bottom: 5px; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-top: 25px; font-size: 1.1em;}
+        .theory ul { margin-top: 5px; padding-left: 20px; }
+        .theory li { margin-bottom: 10px; }
+        .theory p { margin-bottom: 10px; }
+        .math-block { background: #fdfdfd; padding: 15px; border-left: 4px solid var(--secondary); margin: 15px 0; overflow-x: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+
+        @media (max-width: 1100px) { .container { grid-template-columns: 1fr; } .charts-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Ultimate Gas Turbine Engine Analyzer</h1>
+        <p>Comprehensive Thermodynamic Cycle Analysis for 7 Aero and Stationary Architectures</p>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Configuration</h2>
+            
+            <select id="engineSelector" class="engine-selector">
+                <optgroup label="Aero Propulsion Engines">
+                    <option value="turbojet">Turbojet Engine</option>
+                    <option value="turbofan">Turbofan Engine</option>
+                    <option value="turboprop">Turboprop Engine</option>
+                    <option value="turboshaft">Turboshaft Engine</option>
+                </optgroup>
+                <optgroup label="Stationary Power Plants">
+                    <option value="brayton_reheat">Power: Reheat Brayton</option>
+                    <option value="brayton_regen">Power: Regenerative Brayton</option>
+                    <option value="brayton_rr">Power: Regen & Reheat Brayton</option>
+                </optgroup>
+            </select>
+            
+            <div class="section-title">Operating Conditions</div>
+            <div class="form-group">
+                <label>Altitude ($h$) <span id="val_alt">0 m</span></label>
+                <input type="range" id="in_alt" min="0" max="15000" step="500" value="0">
+            </div>
+            <div class="form-group" id="grp_M0">
+                <label>Flight Mach Number ($M_0$) <span id="val_M0">0.0</span></label>
+                <input type="range" id="in_M0" min="0" max="2.5" step="0.05" value="0.0">
+            </div>
+
+            <div class="section-title">Core Engine Design</div>
+            <div class="form-group">
+                <label>Total Mass Flow ($\dot{m}$) <span id="val_mdot">50 kg/s</span></label>
+                <input type="range" id="in_mdot" min="5" max="500" step="5" value="50">
+            </div>
+            <div class="form-group">
+                <label>Core Pressure Ratio (CPR) <span id="val_cpr">15</span></label>
+                <input type="range" id="in_cpr" min="5" max="45" step="1" value="15">
+            </div>
+            <div class="form-group">
+                <label>Turbine Inlet Temp (TIT) <span id="val_T3">1400 K</span></label>
+                <input type="range" id="in_T3" min="1000" max="2000" step="10" value="1400">
+            </div>
+
+            <div id="specificInputs">
+                <div class="section-title" id="lbl_specific">Engine Specifics</div>
+                
+                <div class="form-group specific-tf">
+                    <label>Bypass Ratio (BPR) <span id="val_bpr">5.0</span></label>
+                    <input type="range" id="in_bpr" min="1" max="15" step="0.5" value="5.0">
+                </div>
+                <div class="form-group specific-tf">
+                    <label>Fan Pressure Ratio (FPR) <span id="val_fpr">1.5</span></label>
+                    <input type="range" id="in_fpr" min="1.1" max="2.5" step="0.05" value="1.5">
+                </div>
+                
+                <div class="form-group specific-tp">
+                    <label>Propeller Efficiency ($\eta_{prop}$) <span id="val_etaprop">0.85</span></label>
+                    <input type="range" id="in_etaprop" min="0.60" max="0.95" step="0.01" value="0.85">
+                </div>
+                <div class="form-group specific-ts">
+                    <label>Gearbox Efficiency ($\eta_{gb}$) <span id="val_etagb">0.98</span></label>
+                    <input type="range" id="in_etagb" min="0.90" max="1.00" step="0.01" value="0.98">
+                </div>
+
+                <div class="form-group specific-rh">
+                    <label>Reheat TIT ($T_5$) <span id="val_T5">1400 K</span></label>
+                    <input type="range" id="in_T5" min="1000" max="2000" step="10" value="1400">
+                </div>
+                <div class="form-group specific-rh">
+                    <label>Reheat Pressure Factor ($k$) <span id="val_k">0.5</span></label>
+                    <input type="range" id="in_k" min="0.1" max="0.9" step="0.05" value="0.5">
+                </div>
+                <div class="form-group specific-rg">
+                    <label>Regen Effectiveness ($\epsilon$) <span id="val_eps">0.80</span></label>
+                    <input type="range" id="in_eps" min="0" max="1.0" step="0.01" value="0.80">
+                </div>
+            </div>
+
+            <div class="section-title">Component Efficiencies</div>
+            <div class="form-group">
+                <label>Compressor Eff ($\eta_c$) <span id="val_etac">0.85</span></label>
+                <input type="range" id="in_etac" min="0.50" max="1.00" step="0.01" value="0.85">
+            </div>
+            <div class="form-group">
+                <label>Turbine Eff ($\eta_t$) <span id="val_etat">0.90</span></label>
+                <input type="range" id="in_etat" min="0.50" max="1.00" step="0.01" value="0.90">
+            </div>
+
+            <div class="btn-group">
+                <button class="export-btn" onclick="exportToCSV()">⬇ EXPORT TO CSV</button>
+            </div>
+        </div>
+
+        <div style="min-width: 0;">
+            <div class="card">
+                <h3 id="schematicTitle">Engine Architecture</h3>
+                <div class="schematic" id="schematicContainer">
+                    </div>
+            </div>
+
+            <div class="metrics-grid" id="metricsGrid">
+                </div>
+
+            <div class="card">
+                <h3>Design Maps: Optimization Contours</h3>
+                <p style="font-size: 0.9em; color: #555;">Evaluates the engine across a massive array of CPR and TIT combinations. Note: SFC values are capped visually to prevent highly inefficient low-power regions from washing out the color scale.</p>
+                <div class="charts-grid">
+                    <div class="chart-container"><div id="contourMain" class="plotly-container"></div></div>
+                    <div class="chart-container"><div id="contourSFC" class="plotly-container"></div></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Flight Envelope Parametric Study</h3>
+                <p style="font-size: 0.9em; color: #555;">Evaluates engine performance across different flight speeds (Mach) and Altitudes (Density drops). Note the Ram Recovery effect at higher Mach numbers.</p>
+                <div class="charts-grid">
+                    <div class="chart-container"><canvas id="paramMainChart"></canvas></div>
+                    <div class="chart-container"><canvas id="paramSfcChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Temperature-Entropy (T-s) Diagram</h3>
+                <div class="chart-container">
+                    <canvas id="tsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Thermodynamic State at Each Station</h3>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Station</th>
+                                <th>Description</th>
+                                <th>Temp (K)</th>
+                                <th>Pressure (kPa)</th>
+                                <th>Entropy (J/kg·K)</th>
+                                <th>Velocity (m/s)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTable">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card theory" id="theoryContainer">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // Ensure ChartDataLabels plugin is registered safely
+        if (typeof ChartDataLabels !== 'undefined') {
+            Chart.register(ChartDataLabels);
+        }
+
+        // Global Constants
+        const R = 287.05; // J/kg-K
+        const g = 9.80665; // m/s^2
+        const QR = 43200000; // J/kg
+        const cpc = 1004, gammac = 1.40;
+        const cph = 1148, gammah = 1.33;
+
+        let tsChartInst = null;
+        let paramMainInst = null;
+        let paramSfcInst = null;
+        let globalData = {}; 
+
+        // --- Atmosphere Model ---
+        function getAtmosphere(h) {
+            let T0, P0;
+            if (h <= 11000) {
+                T0 = 288.15 - 0.0065 * h;
+                P0 = 101.325 * Math.pow(T0 / 288.15, g / (0.0065 * R));
+            } else {
+                T0 = 216.65;
+                const P11 = 101.325 * Math.pow(216.65 / 288.15, g / (0.0065 * R));
+                P0 = P11 * Math.exp((-g * (h - 11000)) / (R * 216.65));
+            }
+            return { T0, P0 };
+        }
+
+        // --- Nozzle Expansion ---
+        function expandNozzle(P_in, T_in, P_amb, gamma, cp) {
+            const critRatio = Math.pow((gamma + 1) / 2, gamma / (gamma - 1));
+            const P_crit = P_in / critRatio;
+            const isChoked = (P_amb <= P_crit);
+            let P_exit, T_exit, V_exit;
+            
+            if (P_in <= P_amb) {
+                P_exit = P_amb; T_exit = T_in; V_exit = 0;
+            } else if (isChoked) {
+                P_exit = P_crit; T_exit = T_in * (2 / (gamma + 1)); V_exit = Math.sqrt(gamma * R * T_exit);
+            } else {
+                P_exit = P_amb; T_exit = T_in * Math.pow(P_exit / P_in, (gamma - 1) / gamma); V_exit = Math.sqrt(Math.max(0, 2 * cp * (T_in - T_exit)));
+            }
+            return { isChoked, P_exit, T_exit, V_exit };
+        }
+
+        function calcEntropy(T_arr, P_arr, isCold = false) {
+            const s = [0];
+            for(let i=1; i<T_arr.length; i++) {
+                const cp = (isCold || i<=2) ? cpc : cph;
+                s.push(s[i-1] + cp * Math.log(T_arr[i]/T_arr[i-1]) - R * Math.log(P_arr[i]/P_arr[i-1]));
+            }
+            return s;
+        }
+
+        function getStationDesc(lbl) {
+            const d = {
+                '0': 'Ambient', '1': 'Intake Exit', '2': 'Compressor Exit', 'x': 'Regen Cold Exit',
+                '3': 'Combustor 1 Exit', '4': 'Turbine 1 Exit', '5': 'Combustor 2 Exit',
+                '6': 'Turbine 2 Exit', 'y': 'Regen Hot Exit'
+            };
+            return d[lbl] || 'End';
+        }
+
+        // --- ENGINE SOLVERS ---
+
+        function solveTurbojet(inp) {
+            const T1 = inp.T0 * (1 + ((gammac-1)/2)*Math.pow(inp.M0, 2));
+            const P1 = inp.P0 * Math.pow(T1/inp.T0, gammac/(gammac-1));
+            const V0 = inp.M0 * Math.sqrt(gammac * R * inp.T0);
+
+            const T2s = T1 * Math.pow(inp.cpr, (gammac-1)/gammac);
+            const T2 = T1 + (T2s-T1)/inp.etac;
+            const P2 = P1 * inp.cpr;
+
+            const P3 = P2 * 0.96; 
+            const T4 = inp.T3 - (cpc/cph)*(T2-T1);
+            if(T4 <= inp.T0) return {isValid: false};
+
+            const T4s = inp.T3 - (inp.T3-T4)/inp.etat;
+            const P4 = P3 * Math.pow(T4s/inp.T3, gammah/(gammah-1));
+
+            const noz = expandNozzle(P4, T4, inp.P0, gammah, cph);
+            
+            const thrust_mom = inp.mdot * (noz.V_exit - V0);
+            const thrust_pres = (noz.V_exit>0) ? (noz.P_exit - inp.P0)*1000 * (inp.mdot / ((noz.P_exit*1000)/(R*noz.T_exit) * noz.V_exit)) : 0;
+            const Thrust = (noz.V_exit>0) ? (thrust_mom + thrust_pres)/1000 : 0;
+            
+            const q_in = (cph*inp.T3 - cpc*T2)/0.98;
+            const SFC = (Thrust>0) ? ((q_in/QR)*inp.mdot * 3600) / Thrust : null;
+
+            const s = calcEntropy([inp.T0, T1, T2, inp.T3, T4, noz.T_exit], [inp.P0, P1, P2, P3, P4, noz.P_exit]);
+            const labels = ['0', '1', '2', '3', '4', '5'];
+
+            return {
+                isValid: true, mainVal: Thrust, sfcVal: SFC, 
+                mainLabel: 'Thrust (kN)', sfcLabel: 'TSFC (kg/kN·h)',
+                metrics: [
+                    { t: "Net Thrust", v: Thrust.toFixed(1), u: "kN", c: "#34495e" },
+                    { t: "TSFC", v: SFC?SFC.toFixed(3):"-", u: "kg/kN·h", c: "#8e44ad" },
+                    { t: "EGT (T4)", v: T4.toFixed(0), u: "K", c: "#d35400" },
+                    { t: "Status", v: noz.isChoked?"CHOKED":"UNCHOKED", u: "Nozzle", c: noz.isChoked?"#e74c3c":"#27ae60" }
+                ],
+                stations: [
+                    { st:"0", d:"Ambient", T:inp.T0, P:inp.P0, s:s[0], v:V0 },
+                    { st:"1", d:"Intake", T:T1, P:P1, s:s[1], v:0 },
+                    { st:"2", d:"Comp Exit", T:T2, P:P2, s:s[2], v:0 },
+                    { st:"3", d:"Turbine In", T:inp.T3, P:P3, s:s[3], v:0 },
+                    { st:"4", d:"Turbine Exit", T:T4, P:P4, s:s[4], v:0 },
+                    { st:"5", d:"Nozzle Exit", T:noz.T_exit, P:noz.P_exit, s:s[5], v:noz.V_exit }
+                ],
+                plots: [{ l: 'Turbojet', c: '#e74c3c', s: s, T: [inp.T0, T1, T2, inp.T3, T4, noz.T_exit], labels: labels }]
+            };
+        }
+
+        function solveTurbofan(inp) {
+            const mdot_core = inp.mdot / (1 + inp.bpr);
+            const mdot_byp = inp.mdot - mdot_core;
+
+            const T1 = inp.T0 * (1 + ((gammac-1)/2)*Math.pow(inp.M0, 2));
+            const P1 = inp.P0 * Math.pow(T1/inp.T0, gammac/(gammac-1));
+            const V0 = inp.M0 * Math.sqrt(gammac * R * inp.T0);
+
+            const T13s = T1 * Math.pow(inp.fpr, (gammac-1)/gammac);
+            const T13 = T1 + (T13s-T1)/inp.etac; 
+            const P13 = P1 * inp.fpr;
+            const nozB = expandNozzle(P13, T13, inp.P0, gammac, cpc);
+
+            const T2s = T1 * Math.pow(inp.cpr, (gammac-1)/gammac);
+            const T2 = T1 + (T2s-T1)/inp.etac;
+            const P2 = P1 * inp.cpr;
+
+            const P3 = P2 * 0.96;
+            const w_c = cpc*(T2-T1);
+            const w_f = inp.bpr * cpc*(T13-T1);
+            const T4 = inp.T3 - (w_c + w_f)/cph;
+            if(T4 <= inp.T0) return {isValid: false};
+
+            const T4s = inp.T3 - (inp.T3-T4)/inp.etat;
+            const P4 = P3 * Math.pow(T4s/inp.T3, gammah/(gammah-1));
+            const nozC = expandNozzle(P4, T4, inp.P0, gammah, cph);
+
+            const f_c = (nozC.V_exit>0) ? mdot_core*(nozC.V_exit-V0) + (nozC.P_exit-inp.P0)*1000*(mdot_core/((nozC.P_exit*1000)/(R*nozC.T_exit)*nozC.V_exit)) : 0;
+            const f_b = (nozB.V_exit>0) ? mdot_byp*(nozB.V_exit-V0) + (nozB.P_exit-inp.P0)*1000*(mdot_byp/((nozB.P_exit*1000)/(R*nozB.T_exit)*nozB.V_exit)) : 0;
+            const Thrust = (f_c + f_b)/1000;
+
+            const q_in = (cph*inp.T3 - cpc*T2)/0.98;
+            const SFC = (Thrust>0) ? ((q_in/QR)*mdot_core * 3600) / Thrust : null;
+
+            const sC = calcEntropy([inp.T0, T1, T2, inp.T3, T4, nozC.T_exit], [inp.P0, P1, P2, P3, P4, nozC.P_exit]);
+            const sB = calcEntropy([inp.T0, T1, T13, nozB.T_exit], [inp.P0, P1, P13, nozB.P_exit], true);
+            
+            const labelsCore = ['0', '1', '2', '3', '4', '9'];
+            const labelsByp = ['', '', '13', '19']; 
+
+            return {
+                isValid: true, mainVal: Thrust, sfcVal: SFC, 
+                mainLabel: 'Total Thrust (kN)', sfcLabel: 'TSFC (kg/kN·h)',
+                metrics: [
+                    { t: "Total Thrust", v: Thrust.toFixed(1), u: "kN", c: "#34495e" },
+                    { t: "TSFC", v: SFC?SFC.toFixed(3):"-", u: "kg/kN·h", c: "#8e44ad" },
+                    { t: "Bypass Thrust", v: (f_b/1000).toFixed(1), u: "kN", c: "#3498db" },
+                    { t: "Core Thrust", v: (f_c/1000).toFixed(1), u: "kN", c: "#e74c3c" }
+                ],
+                stations: [
+                    { st:"0", d:"Ambient", T:inp.T0, P:inp.P0, s:sC[0], v:V0 },
+                    { st:"1", d:"Intake", T:T1, P:P1, s:sC[1], v:0 },
+                    { st:"13", d:"Fan Exit", T:T13, P:P13, s:sB[2], v:0 },
+                    { st:"2", d:"Core Comp Exit", T:T2, P:P2, s:sC[2], v:0 },
+                    { st:"3", d:"Turbine In", T:inp.T3, P:P3, s:sC[3], v:0 },
+                    { st:"4", d:"Turbine Exit", T:T4, P:P4, s:sC[4], v:0 },
+                    { st:"9", d:"Core Nozzle", T:nozC.T_exit, P:nozC.P_exit, s:sC[5], v:nozC.V_exit },
+                    { st:"19", d:"Bypass Nozzle", T:nozB.T_exit, P:nozB.P_exit, s:sB[3], v:nozB.V_exit }
+                ],
+                plots: [
+                    { l: 'Core', c: '#e74c3c', s: sC, T: [inp.T0, T1, T2, inp.T3, T4, nozC.T_exit], labels: labelsCore },
+                    { l: 'Bypass', c: '#3498db', s: sB, T: [inp.T0, T1, T13, nozB.T_exit], labels: labelsByp }
+                ]
+            };
+        }
+
+        function solveTurbopropShaft(inp, isShaft) {
+            const delta = inp.P0 / 101.325;
+            const theta = inp.T0 / 288.15;
+            const mdot_actual = inp.mdot * (delta / Math.sqrt(theta));
+
+            const T1 = inp.T0 * (1 + ((gammac-1)/2)*Math.pow(inp.M0, 2));
+            const P1 = inp.P0 * Math.pow(T1/inp.T0, gammac/(gammac-1));
+            const V0 = inp.M0 * Math.sqrt(gammac * R * inp.T0);
+
+            const T2s = T1 * Math.pow(inp.cpr, (gammac-1)/gammac);
+            const T2 = T1 + (T2s-T1)/inp.etac;
+            const P2 = P1 * inp.cpr;
+
+            const P3 = P2 * 0.96;
+            const T4 = inp.T3 - (cpc/cph)*(T2-T1);
+            if(T4 <= inp.T0) return {isValid: false};
+
+            const T4s = inp.T3 - (inp.T3-T4)/inp.etat;
+            const P4 = P3 * Math.pow(T4s/inp.T3, gammah/(gammah-1));
+
+            const P5 = isShaft ? inp.P0 : inp.P0 * 1.05; 
+            if(P5 >= P4) return {isValid: false};
+
+            const T5s = T4 * Math.pow(P5/P4, (gammah-1)/gammah);
+            const T5 = T4 - inp.etat * (T4 - T5s);
+            const P_shaft = (mdot_actual * cph * (T4 - T5) * inp.etagb) / 1000; 
+
+            const noz = expandNozzle(P5, T5, inp.P0, gammah, cph);
+            const F_jet = (noz.V_exit>0) ? (mdot_actual*(noz.V_exit-V0) + (noz.P_exit-inp.P0)*1000*(mdot_actual/((noz.P_exit*1000)/(R*noz.T_exit)*noz.V_exit)))/1000 : 0;
+
+            const q_in = (cph*inp.T3 - cpc*T2)/0.98;
+            const mdot_f = (q_in/QR)*mdot_actual;
+
+            let mainVal, SFC, mtx;
+            if(isShaft) {
+                mainVal = P_shaft;
+                SFC = (mainVal>0) ? (mdot_f*3600)/mainVal : null;
+                const ThermalEff = (P_shaft / (mdot_f * QR / 1000)) * 100;
+                mtx = [
+                    { t: "Shaft Power", v: mainVal.toFixed(0), u: "kW", c: "#e67e22" },
+                    { t: "SFC", v: SFC?SFC.toFixed(3):"-", u: "kg/kW·h", c: "#8e44ad" },
+                    { t: "Thermal Eff", v: ThermalEff.toFixed(1), u: "%", c: "#27ae60" },
+                    { t: "Mass Flow", v: mdot_actual.toFixed(1), u: "kg/s", c: "#34495e" }
+                ];
+            } else {
+                const F_prop = (V0>0.1) ? (P_shaft * inp.etaprop) / V0 : 0;
+                const ESP = P_shaft + (inp.etaprop>0 && V0>0.1 ? (F_jet*1000*V0)/(inp.etaprop*1000) : 0);
+                mainVal = ESP;
+                SFC = (ESP>0) ? (mdot_f*3600)/ESP : null;
+                mtx = [
+                    { t: "Equiv Power (ESP)", v: mainVal.toFixed(0), u: "kW", c: "#d35400" },
+                    { t: "ESFC", v: SFC?SFC.toFixed(3):"-", u: "kg/kW·h", c: "#8e44ad" },
+                    { t: "Shaft Power", v: P_shaft.toFixed(0), u: "kW", c: "#e67e22" },
+                    { t: "Total Thrust", v: (F_prop+F_jet).toFixed(1), u: "kN", c: "#34495e" }
+                ];
+            }
+
+            const s = calcEntropy([inp.T0, T1, T2, inp.T3, T4, T5, noz.T_exit], [inp.P0, P1, P2, P3, P4, P5, noz.P_exit]);
+            const labels = ['0', '1', '2', '3', '4', '5', '9'];
+
+            return {
+                isValid: true, mainVal: mainVal, sfcVal: SFC,
+                mainLabel: isShaft ? 'Shaft Power (kW)' : 'ESP (kW)', sfcLabel: isShaft ? 'SFC (kg/kWh)' : 'ESFC (kg/kWh)',
+                metrics: mtx,
+                stations: [
+                    { st:"0", d:"Ambient", T:inp.T0, P:inp.P0, s:s[0], v:V0 },
+                    { st:"1", d:"Intake", T:T1, P:P1, s:s[1], v:0 },
+                    { st:"2", d:"Comp Exit", T:T2, P:P2, s:s[2], v:0 },
+                    { st:"3", d:"Turbine In", T:inp.T3, P:P3, s:s[3], v:0 },
+                    { st:"4", d:"GG Turb Exit", T:T4, P:P4, s:s[4], v:0 },
+                    { st:"5", d:"Power Turb Exit", T:T5, P:P5, s:s[5], v:0 },
+                    { st:"9", d:"Exhaust", T:noz.T_exit, P:noz.P_exit, s:s[6], v:noz.V_exit }
+                ],
+                plots: [{ l: isShaft?'Turboshaft':'Turboprop', c: '#e67e22', s: s, T: [inp.T0, T1, T2, inp.T3, T4, T5, noz.T_exit], labels: labels }]
+            };
+        }
+
+        // Stationary Brayton Cycles
+        function solveStationary(inp, hasRegen, hasReheat) {
+            const T1 = inp.T0 * (1 + ((gammac - 1) / 2) * Math.pow(inp.M0, 2));
+            const P1 = inp.P0 * Math.pow(T1 / inp.T0, gammac / (gammac - 1));
+            const V0 = inp.M0 * Math.sqrt(gammac * R * inp.T0);
+            
+            const delta = inp.P0 / 101.325;
+            const theta = inp.T0 / 288.15;
+            const mdot_actual = inp.mdot * (delta / Math.sqrt(theta));
+
+            const T2s = T1 * Math.pow(inp.cpr, (gammac - 1) / gammac);
+            const T2 = T1 + (T2s - T1) / inp.etac;
+            const P2 = P1 * inp.cpr;
+            const W_comp = mdot_actual * cpc * (T2 - T1) / 1000; 
+
+            const P3 = P2 * 0.96;
+            let W_turb_total = 0;
+            let T4, P4, T6, P6; 
+            let T_hot_in_regen = 0;
+
+            if (hasReheat) {
+                P4 = P1 * Math.pow(inp.cpr, inp.k);
+                if(P4 >= P3 || P4 <= P1) return {isValid: false};
+                
+                const T4s = inp.T3 * Math.pow(P4 / P3, (gammah - 1) / gammah);
+                T4 = inp.T3 - inp.etat * (inp.T3 - T4s);
+                const W_t1 = mdot_actual * cph * (inp.T3 - T4) / 1000;
+                
+                const P5 = P4 * 0.98; 
+                P6 = inp.P0; 
+                const T6s = inp.T5 * Math.pow(P6 / P5, (gammah - 1) / gammah);
+                T6 = inp.T5 - inp.etat * (inp.T5 - T6s);
+                const W_t2 = mdot_actual * cph * (inp.T5 - T6) / 1000;
+
+                W_turb_total = W_t1 + W_t2;
+                T_hot_in_regen = T6;
+            } else {
+                P4 = inp.P0; 
+                const T4s = inp.T3 * Math.pow(P4 / P3, (gammah - 1) / gammah);
+                T4 = inp.T3 - inp.etat * (inp.T3 - T4s);
+                W_turb_total = mdot_actual * cph * (inp.T3 - T4) / 1000;
+                T_hot_in_regen = T4;
+            }
+
+            let Tx = T2; 
+            let Ty = T_hot_in_regen; 
+            let isRegenActive = false;
+            
+            if (hasRegen && T_hot_in_regen > T2) {
+                isRegenActive = true;
+                const q_reg = inp.eps * cpc * (T_hot_in_regen - T2); 
+                Tx = T2 + q_reg / cpc;
+                Ty = T_hot_in_regen - q_reg / cph;
+            }
+
+            const Q_in1 = mdot_actual * cph * (inp.T3 - Tx) / 0.98 / 1000; 
+            const Q_in2 = hasReheat ? mdot_actual * cph * (inp.T5 - T4) / 0.98 / 1000 : 0;
+            const q_in_total = Q_in1 + Q_in2;
+
+            const W_net = W_turb_total - W_comp;
+            if (W_net <= 0) return {isValid: false};
+
+            const eta_th = (W_net / q_in_total) * 100;
+            const mdot_f = (q_in_total * 1000) / QR; 
+            const SFC = (mdot_f * 3600) / W_net; 
+
+            const T_path = [inp.T0, T1, T2];
+            const P_path = [inp.P0, P1, P2];
+            const L_path = ['0', '1', '2'];
+
+            if (hasRegen && isRegenActive) { T_path.push(Tx); P_path.push(P2); L_path.push('x'); }
+            T_path.push(inp.T3); P_path.push(P3); L_path.push('3');
+            
+            if (hasReheat) {
+                T_path.push(T4); P_path.push(P4); L_path.push('4');
+                T_path.push(inp.T5); P_path.push(P4*0.98); L_path.push('5');
+                T_path.push(T6); P_path.push(P6); L_path.push('6');
+                if (hasRegen && isRegenActive) { T_path.push(Ty); P_path.push(P6); L_path.push('y'); }
+            } else {
+                T_path.push(T4); P_path.push(P4); L_path.push('4');
+                if (hasRegen && isRegenActive) { T_path.push(Ty); P_path.push(P4); L_path.push('y'); }
+            }
+            T_path.push(inp.T0); P_path.push(inp.P0); L_path.push('');
+
+            const s_path = calcEntropy(T_path, P_path, false);
+            const stations = [];
+            for(let i=0; i<T_path.length-1; i++) {
+                stations.push({ st: L_path[i], d: getStationDesc(L_path[i]), T: T_path[i], P: P_path[i], s: s_path[i], v: L_path[i]==='0'?V0:0 });
+            }
+
+            return {
+                isValid: true, mainVal: W_net, sfcVal: SFC,
+                mainLabel: 'Shaft Power (kW)', sfcLabel: 'SFC (kg/kWh)',
+                metrics: [
+                    { t: "Shaft Power", v: W_net.toFixed(0), u: "kW", c: "#e67e22" },
+                    { t: "SFC", v: SFC.toFixed(3), u: "kg/kW·h", c: "#8e44ad" },
+                    { t: "Thermal Eff", v: eta_th.toFixed(1), u: "%", c: "#27ae60" },
+                    { t: "Regen Active", v: isRegenActive?"YES":"NO", u: "-", c: isRegenActive?"#27ae60":"#7f8c8d" }
+                ],
+                stations: stations,
+                plots: [{ l: 'Power Cycle', c: '#e67e22', s: s_path, T: T_path, labels: L_path }]
+            };
+        }
+
+
+        // --- UI & THEORIES ---
+
+        function getTheoryHTML(engine) {
+            const theories = {
+                'turbojet': `
+                    <h3>Turbojet Thermodynamic Theory</h3>
+                    <p>The turbojet operates on the standard open Brayton cycle. All the work produced by the turbine is used strictly to drive the compressor ($W_t = W_c$). The remaining energy expands in the nozzle to generate a high-velocity exhaust jet, producing thrust.</p>
+                    <div class="math-block">
+                        <b>1. Intake (Ram Compression):</b><br>
+                        $T_1 = T_0 \\left(1 + \\frac{\\gamma_c - 1}{2} M_0^2\\right) \\quad , \\quad P_1 = P_0 \\left(\\frac{T_1}{T_0}\\right)^{\\frac{\\gamma_c}{\\gamma_c - 1}}$<br><br>
+                        <b>2. Compressor:</b><br>
+                        $T_2 = T_1 + \\frac{T_1 (CPR^{\\frac{\\gamma_c - 1}{\\gamma_c}} - 1)}{\\eta_c} \\quad , \\quad P_2 = P_1 \\cdot CPR$<br><br>
+                        <b>3. Combustor:</b><br>
+                        $q_{in} = \\frac{c_{p,h} T_3 - c_{p,c} T_2}{\\eta_b} \\implies \\dot{m}_f = \\frac{\\dot{m}_{air} \\cdot q_{in}}{LHV}$<br><br>
+                        <b>4. Turbine (Work Balance $W_t = W_c$):</b><br>
+                        $T_4 = T_3 - \\frac{c_{p,c}}{c_{p,h}}(T_2 - T_1) \\quad , \\quad P_4 = P_3 \\left(1 - \\frac{T_3 - T_4}{\\eta_t T_3}\\right)^{\\frac{\\gamma_h}{\\gamma_h - 1}}$<br><br>
+                        <b>5. Performance:</b><br>
+                        Net Thrust: $F = \\dot{m}(V_e - V_0) + (P_e - P_0)A_e$<br>
+                        Propulsive Efficiency: $\\eta_p = \\frac{2 V_0}{V_e + V_0}$ (peaks when $V_e \\approx V_0$, which is why pure turbojets are inefficient at low speeds).
+                    </div>
+                `,
+                'turbofan': `
+                    <h3>Turbofan Thermodynamic Theory</h3>
+                    <p>The turbofan splits the incoming air. A portion bypasses the core entirely, accelerated by a fan. The turbine extracts excess work (beyond what the core compressor needs) to drive this fan. This moves a large mass of air at a slower velocity, vastly improving propulsive efficiency.</p>
+                    <div class="math-block">
+                        <b>1. Work Split & Bypass Ratio (BPR = $\\dot{m}_{byp} / \\dot{m}_{core}$):</b><br>
+                        The turbine must provide work for both the core compressor ($W_c$) and the fan ($W_f$).<br>
+                        $W_t = W_c + BPR \\cdot W_f$<br>
+                        $c_{p,h}(T_3 - T_4) = c_{p,c}(T_2 - T_1) + BPR \\cdot c_{p,c}(T_{13} - T_1)$<br><br>
+                        <b>2. Fan Compression:</b><br>
+                        $T_{13} = T_1 + \\frac{T_1 (FPR^{\\frac{\\gamma_c - 1}{\\gamma_c}} - 1)}{\\eta_f}$<br><br>
+                        <b>3. Thrust Contributions:</b><br>
+                        $F_{core} = \\dot{m}_{core}(V_{e,core} - V_0)$<br>
+                        $F_{bypass} = \\dot{m}_{byp}(V_{e,byp} - V_0)$<br>
+                        $F_{total} = F_{core} + F_{bypass}$<br><br>
+                        <b>4. Specific Fuel Consumption (TSFC):</b><br>
+                        $TSFC = \\frac{\\dot{m}_f}{F_{total}}$ (Substantially lower than a turbojet because thrust is generated more efficiently).
+                    </div>
+                `,
+                'turboprop': `
+                    <h3>Turboprop Thermodynamic Theory</h3>
+                    <p>A turboprop engine extracts nearly all the energy from the exhaust stream using an additional Power Turbine (PT) to drive a propeller via a reduction gearbox. It is highly efficient at low to medium subsonic speeds (Mach < 0.6).</p>
+                    <div class="math-block">
+                        <b>1. Dual Turbine Architecture:</b><br>
+                        Gas Generator (GG) Turbine drives the compressor: $W_{GG} = W_c$<br>
+                        Power Turbine (PT) drives the propeller: expands gas from $P_4$ down to a nozzle pressure ratio $NPR = P_5/P_0 \\approx 1.05$.<br><br>
+                        <b>2. Shaft Power ($P_{shaft}$):</b><br>
+                        $P_{shaft} = \\dot{m} \\cdot c_{p,h}(T_4 - T_5) \\cdot \\eta_{gb}$<br><br>
+                        <b>3. Propeller vs Jet Thrust:</b><br>
+                        $F_{prop} = \\frac{P_{shaft} \\cdot \\eta_{prop}}{V_0} \\quad (\\text{dominant at low speeds})$<br>
+                        $F_{jet} = \\dot{m}(V_{exhaust} - V_0) \\quad (\\text{residual thrust from nozzle})$<br><br>
+                        <b>4. Equivalent Shaft Power (ESP):</b><br>
+                        Because output is split between shaft and jet thrust, engines are rated in ESP.<br>
+                        $ESP = P_{shaft} + \\frac{F_{jet} \\cdot V_0}{\\eta_{prop}}$<br>
+                        $ESFC = \\frac{\\dot{m}_f}{ESP}$
+                    </div>
+                `,
+                'turboshaft': `
+                    <h3>Turboshaft Thermodynamic Theory</h3>
+                    <p>The turboshaft cycle is mathematically similar to the turboprop, but 100% of the useful expansion work is targeted for the shaft (e.g., helicopter rotors, tanks, power generation). The exhaust expands completely to ambient pressure ($P_5 = P_0$), meaning $F_{jet} = 0$.</p>
+                    <div class="math-block">
+                        <b>1. Cycle Work Extraction:</b><br>
+                        Gas Generator Turbine: $W_{GG} = W_{comp}$<br>
+                        Power Turbine expands fully: $P_5 = P_0$<br>
+                        $T_{5s} = T_4 \\left(\\frac{P_0}{P_4}\\right)^{\\frac{\\gamma_h - 1}{\\gamma_h}} \\quad , \\quad T_5 = T_4 - \\eta_{pt}(T_4 - T_{5s})$<br><br>
+                        <b>2. Shaft Power Output:</b><br>
+                        $P_{shaft} = \\dot{m} \\cdot c_{p,h}(T_4 - T_5) \\cdot \\eta_{gb}$<br><br>
+                        <b>3. Thermal Efficiency & SFC:</b><br>
+                        $\\eta_{th} = \\frac{P_{shaft}}{Q_{in}} \\times 100\\%$<br>
+                        $SFC = \\frac{\\dot{m}_f \\cdot 3600}{P_{shaft}} \\quad \\text{[kg/kWh]}$<br><br>
+                        <b>Altitude & Density Effects:</b><br>
+                        Turboshaft power drops rapidly with altitude because the mass flow rate drops proportionally with air density $\\rho$.<br>
+                        $\\dot{m}_{actual} = \\dot{m}_{SLS} \\frac{\\delta}{\\sqrt{\\theta}} \\approx \\dot{m}_{SLS} \\frac{\\rho}{\\rho_{SLS}}$
+                    </div>
+                `,
+                'brayton_reheat': `
+                    <h3>Reheat Brayton Cycle Theory</h3>
+                    <p>Reheating splits the expansion process into multiple stages. After the High-Pressure Turbine (HPT), the gas is reheated in a second combustor before expanding through the Low-Pressure Turbine (LPT). This increases the net work output significantly, though it typically lowers thermal efficiency unless paired with regeneration.</p>
+                    <div class="math-block">
+                        <b>1. Interstage Pressure ($P_4$):</b><br>
+                        $P_4 = P_1 \\cdot CPR^k$<br>
+                        Where $k=0.5$ provides the optimal theoretical work split.<br><br>
+                        <b>2. Work & Heat:</b><br>
+                        $W_{net} = W_{HPT} + W_{LPT} - W_{comp}$<br>
+                        $Q_{in} = c_{p,h}(T_3 - T_2) + c_{p,h}(T_5 - T_4)$<br><br>
+                        <b>3. Efficiency:</b> $\\eta_{th} = \\frac{W_{net}}{Q_{in}}$
+                    </div>
+                `,
+                'brayton_regen': `
+                    <h3>Regenerative Brayton Cycle Theory</h3>
+                    <p>A regenerator (heat exchanger) recovers waste heat from the turbine exhaust and transfers it to the high-pressure air leaving the compressor. This reduces the fuel needed in the combustor, drastically increasing thermal efficiency.</p>
+                    <div class="math-block">
+                        <b>1. Heat Recovery:</b><br>
+                        $\\epsilon = \\frac{T_x - T_2}{T_4 - T_2}$<br>
+                        where $T_x$ is the air temperature entering the combustor and $T_4$ is the turbine exhaust.<br><br>
+                        <b>2. Combustor Heat Input:</b><br>
+                        $Q_{in} = c_{p,h}(T_3 - T_x)$<br>
+                        Because $T_x > T_2$, less fuel is burned.<br><br>
+                        <b>3. Condition for Regeneration:</b><br>
+                        Regeneration is only possible if $T_4 > T_2$. At very high CPRs, $T_2$ exceeds $T_4$ and a regenerator would actually cool the air!
+                    </div>
+                `,
+                'brayton_rr': `
+                    <h3>Regen & Reheat Brayton Cycle Theory</h3>
+                    <p>This cycle combines Reheat and Regeneration. Reheating produces more power and inherently raises the final exhaust temperature ($T_6$). This higher exhaust temperature makes the Regenerator highly effective, boosting efficiency. Thus, the two modifications synergize perfectly.</p>
+                    <div class="math-block">
+                        <b>1. Synergistic Effect:</b><br>
+                        $T_{exhaust}$ (from LPT) is much higher than a simple cycle exhaust. This allows the regenerator to preheat the air ($T_x$) to a much higher level.<br><br>
+                        <b>2. Heat Input & Output:</b><br>
+                        $Q_{in} = c_{p,h}(T_3 - T_x) + c_{p,h}(T_5 - T_4)$<br>
+                        $W_{net} = W_{HPT} + W_{LPT} - W_{comp}$<br><br>
+                        <b>3. Overall Performance:</b><br>
+                        Yields both extremely high specific work output and high thermal efficiency.
+                    </div>
+                `
+            };
+            return theories[engine] || '';
+        }
+
+        function updateUIState() {
+            currentEngine = document.getElementById('engineSelector').value;
+            
+            const m0Input = document.getElementById('in_M0');
+            if(currentEngine === 'turboshaft') m0Input.value = 0;
+            else if(currentEngine === 'turboprop' && m0Input.value == 0) m0Input.value = 0.3;
+            else if(currentEngine.startsWith('brayton')) m0Input.value = 0;
+
+            document.querySelectorAll('.specific-tf, .specific-tp, .specific-ts, .specific-rh, .specific-rg').forEach(el => el.classList.add('hidden'));
+            if(currentEngine === 'turbofan') document.querySelectorAll('.specific-tf').forEach(el => el.classList.remove('hidden'));
+            if(currentEngine === 'turboprop') document.querySelectorAll('.specific-tp, .specific-ts').forEach(el => el.classList.remove('hidden'));
+            if(currentEngine === 'turboshaft') document.querySelectorAll('.specific-ts').forEach(el => el.classList.remove('hidden'));
+            
+            if(currentEngine === 'brayton_reheat' || currentEngine === 'brayton_rr') document.querySelectorAll('.specific-rh').forEach(el => el.classList.remove('hidden'));
+            if(currentEngine === 'brayton_regen' || currentEngine === 'brayton_rr') document.querySelectorAll('.specific-rg').forEach(el => el.classList.remove('hidden'));
+
+            document.getElementById('lbl_specific').style.display = (currentEngine === 'turbojet') ? 'none' : 'block';
+
+            const sch = document.getElementById('schematicContainer');
+            const title = document.getElementById('schematicTitle');
+            if (currentEngine === 'turbojet') {
+                title.innerText = "Turbojet Architecture";
+                sch.innerHTML = `<div class="stage-box">Intake</div><div class="arrow"></div><div class="stage-box">Compressor</div><div class="arrow"></div><div class="stage-box">Combustor</div><div class="arrow"></div><div class="stage-box">Turbine</div><div class="arrow"></div><div class="stage-box">Nozzle</div>`;
+            } else if (currentEngine === 'turbofan') {
+                title.innerText = "Turbofan Architecture";
+                sch.innerHTML = `<div class="stage-box">Intake</div><div class="arrow"></div><div style="display:flex; flex-direction:column; gap:10px;"><div style="display:flex; align-items:center;"><div class="stage-box" style="border:2px solid #3498db">Fan</div><div class="arrow"></div><div class="stage-box">Bypass Noz</div></div><div style="display:flex; align-items:center;"><div class="stage-box">Core Comp</div><div class="arrow"></div><div class="stage-box">Burner</div><div class="arrow"></div><div class="stage-box">Turbine</div><div class="arrow"></div><div class="stage-box">Core Noz</div></div></div>`;
+            } else if (currentEngine === 'turboprop' || currentEngine === 'turboshaft') {
+                title.innerText = currentEngine === 'turboprop' ? "Turboprop Architecture" : "Turboshaft Architecture";
+                let load = currentEngine === 'turboprop' ? "Propeller" : "Rotor / Gen";
+                sch.innerHTML = `<div class="shaft"></div><div class="stage-box" style="border:3px solid #e67e22; border-radius:50%; z-index:3;">${load}</div><div class="arrow" style="background:transparent"></div><div class="stage-box">Intake</div><div class="arrow"></div><div class="stage-box">Comp</div><div class="arrow"></div><div class="stage-box">Burner</div><div class="arrow"></div><div class="stage-box">GG Turb</div><div class="arrow"></div><div class="stage-box" style="border:2px solid #e67e22">Power Turb</div><div class="arrow"></div><div class="stage-box">Exhaust</div>`;
+            } else if (currentEngine === 'brayton_reheat') {
+                title.innerText = "Reheat Brayton Architecture";
+                sch.innerHTML = `<div class="stage-box">Intake</div><div class="arrow"></div><div class="stage-box">Comp</div><div class="arrow"></div><div class="stage-box">Comb 1</div><div class="arrow"></div><div class="stage-box">HPT</div><div class="arrow"></div><div class="stage-box">Comb 2</div><div class="arrow"></div><div class="stage-box">LPT</div><div class="arrow"></div><div class="stage-box">Exhaust</div>`;
+            } else if (currentEngine === 'brayton_regen') {
+                title.innerText = "Regenerative Brayton Architecture";
+                sch.innerHTML = `<div class="stage-box">Intake</div><div class="arrow"></div><div class="stage-box">Comp</div><div class="arrow"></div><div class="stage-box" style="background:#f39c12; color:white;">Regenerator</div><div class="arrow"></div><div class="stage-box">Combustor</div><div class="arrow"></div><div class="stage-box">Turbine</div><div class="arrow"></div><div class="stage-box" style="background:#f39c12; color:white;">Regenerator</div><div class="arrow"></div><div class="stage-box">Exhaust</div>`;
+            } else if (currentEngine === 'brayton_rr') {
+                title.innerText = "Regen-Reheat Brayton Architecture";
+                sch.innerHTML = `<div class="stage-box">Intake</div><div class="arrow"></div><div class="stage-box">Comp</div><div class="arrow"></div><div class="stage-box" style="background:#f39c12; color:white;">Regen</div><div class="arrow"></div><div class="stage-box">Comb 1</div><div class="arrow"></div><div class="stage-box">HPT</div><div class="arrow"></div><div class="stage-box">Comb 2</div><div class="arrow"></div><div class="stage-box">LPT</div><div class="arrow"></div><div class="stage-box" style="background:#f39c12; color:white;">Regen</div><div class="arrow"></div><div class="stage-box">Exhaust</div>`;
+            }
+
+            document.getElementById('theoryContainer').innerHTML = getTheoryHTML(currentEngine);
+            MathJax.typesetPromise();
+            calculateAndRender();
+        }
+
+        function calculateAndRender() {
+            const inp = {
+                h: parseFloat(document.getElementById('in_alt').value),
+                M0: parseFloat(document.getElementById('in_M0').value),
+                mdot: parseFloat(document.getElementById('in_mdot').value),
+                cpr: parseFloat(document.getElementById('in_cpr').value),
+                T3: parseFloat(document.getElementById('in_T3').value),
+                bpr: parseFloat(document.getElementById('in_bpr').value),
+                fpr: parseFloat(document.getElementById('in_fpr').value),
+                etaprop: parseFloat(document.getElementById('in_etaprop').value),
+                etagb: parseFloat(document.getElementById('in_etagb').value),
+                etac: parseFloat(document.getElementById('in_etac').value),
+                etat: parseFloat(document.getElementById('in_etat').value),
+                T5: parseFloat(document.getElementById('in_T5').value),
+                k: parseFloat(document.getElementById('in_k').value),
+                eps: parseFloat(document.getElementById('in_eps').value),
+                etab: 0.98, dpb: 0.04
+            };
+
+            // Update Labels
+            document.getElementById('val_alt').innerText = inp.h + " m";
+            document.getElementById('val_M0').innerText = inp.M0.toFixed(2);
+            document.getElementById('val_mdot').innerText = inp.mdot + " kg/s";
+            document.getElementById('val_cpr').innerText = inp.cpr;
+            document.getElementById('val_T3').innerText = inp.T3 + " K";
+            document.getElementById('val_bpr').innerText = inp.bpr.toFixed(1);
+            document.getElementById('val_fpr').innerText = inp.fpr.toFixed(2);
+            document.getElementById('val_etaprop').innerText = inp.etaprop.toFixed(2);
+            document.getElementById('val_etagb').innerText = inp.etagb.toFixed(2);
+            document.getElementById('val_etac').innerText = inp.etac.toFixed(2);
+            document.getElementById('val_etat').innerText = inp.etat.toFixed(2);
+            document.getElementById('val_T5').innerText = inp.T5 + " K";
+            document.getElementById('val_k').innerText = inp.k.toFixed(2);
+            document.getElementById('val_eps').innerText = inp.eps.toFixed(2);
+
+            const atm = getAtmosphere(inp.h);
+            inp.T0 = atm.T0; inp.P0 = atm.P0;
+
+            let res;
+            if (currentEngine === 'turbojet') res = solveTurbojet(inp);
+            else if (currentEngine === 'turbofan') res = solveTurbofan(inp);
+            else if (currentEngine === 'turboprop') res = solveTurbopropShaft(inp, false);
+            else if (currentEngine === 'turboshaft') res = solveTurbopropShaft(inp, true);
+            else if (currentEngine === 'brayton_reheat') res = solveStationary(inp, false, true);
+            else if (currentEngine === 'brayton_regen') res = solveStationary(inp, true, false);
+            else if (currentEngine === 'brayton_rr') res = solveStationary(inp, true, true);
+
+            globalData = { inputs: inp, results: res, engine: currentEngine };
+
+            if(res.isValid) {
+                // Metrics
+                document.getElementById('metricsGrid').innerHTML = res.metrics.map(m => `<div class="metric-card" style="background:${m.c};">${m.t}<span>${m.v}</span><small>${m.u}</small></div>`).join('');
+                // Table
+                document.getElementById('dataTable').innerHTML = res.stations.map(st => `<tr><td>${st.st}</td><td>${st.d}</td><td>${st.T.toFixed(1)}</td><td>${st.P.toFixed(1)}</td><td>${st.s.toFixed(2)}</td><td>${st.v.toFixed(0)}</td></tr>`).join('');
+                
+                // T-s Chart
+                const ctxTs = document.getElementById('tsChart').getContext('2d');
+                const datasets = res.plots.map(p => ({
+                    label: p.l, 
+                    data: p.s.map((s_v, i) => ({x: s_v, y: p.T[i], stLabel: p.labels[i]})),
+                    borderColor: p.c, 
+                    backgroundColor: p.c, 
+                    pointBackgroundColor: '#2c3e50',
+                    pointRadius: 6, 
+                    showLine: true, 
+                    fill: false, 
+                    tension: 0
+                }));
+
+                if (tsChartInst) { 
+                    tsChartInst.data.datasets = datasets; 
+                    tsChartInst.update(); 
+                } else {
+                    tsChartInst = new Chart(ctxTs, {
+                        type: 'scatter', 
+                        data: { datasets: datasets },
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            plugins: { 
+                                tooltip: { callbacks: { label: (ctx) => `Station ${ctx.raw.stLabel}: s=${ctx.raw.x.toFixed(1)}, T=${ctx.raw.y.toFixed(1)} K` } },
+                                datalabels: { display: true, align: 'right', anchor: 'center', offset: 8, color: '#2c3e50', font: { weight: 'bold', size: 14 }, formatter: (v) => v.stLabel } 
+                            },
+                            scales: { 
+                                x: { title: { display: true, text: 'Entropy s (J/kgK)', font: {weight:'bold'} } }, 
+                                y: { title: { display: true, text: 'Temp T (K)', font: {weight:'bold'} }, min: 200 } 
+                            }
+                        }
+                    });
+                }
+            } else {
+                document.getElementById('metricsGrid').innerHTML = `<h3 style="color:red; grid-column: 1/-1;">Invalid Cycle constraints (e.g., Turbine cannot extract required energy, or invalid Regen Delta).</h3>`;
+                document.getElementById('dataTable').innerHTML = '';
+            }
+
+            // --- PARAMETRIC SWEEP (Mach lines) ---
+            const machArray = [];
+            // Run sweep up to 0.8 to universally show dynamic pressure effects
+            for (let m = 0.0; m <= 0.8; m += 0.05) machArray.push(parseFloat(m.toFixed(2)));
+
+            const altSweeps = [0, 5000, 10000];
+            const colors = ['#e74c3c', '#3498db', '#9b59b6'];
+            const mainDs = [], sfcDs = [];
+
+            altSweeps.forEach((alt, idx) => {
+                const mainData = [], sfcData = [];
+                machArray.forEach(m => {
+                    const tempInp = {...inp, h: alt, M0: m};
+                    const tAtm = getAtmosphere(alt);
+                    tempInp.T0 = tAtm.T0; tempInp.P0 = tAtm.P0;
+                    
+                    let tr;
+                    if(currentEngine==='turbojet') tr=solveTurbojet(tempInp);
+                    else if(currentEngine==='turbofan') tr=solveTurbofan(tempInp);
+                    else if(currentEngine==='turboprop') tr=solveTurbopropShaft(tempInp, false);
+                    else if(currentEngine==='turboshaft') tr=solveTurbopropShaft(tempInp, true);
+                    else if(currentEngine==='brayton_reheat') tr=solveStationary(tempInp, false, true);
+                    else if(currentEngine==='brayton_regen') tr=solveStationary(tempInp, true, false);
+                    else if(currentEngine==='brayton_rr') tr=solveStationary(tempInp, true, true);
+
+                    if (tr.isValid && tr.mainVal > 0) { mainData.push(tr.mainVal); sfcData.push(tr.sfcVal); } 
+                    else { mainData.push(null); sfcData.push(null); }
+                });
+                mainDs.push({ label: `h = ${alt} m`, data: mainData, borderColor: colors[idx], fill: false, tension: 0.2 });
+                sfcDs.push({ label: `h = ${alt} m`, data: sfcData, borderColor: colors[idx], fill: false, tension: 0.2 });
+            });
+
+            const l_main = res.isValid ? res.mainLabel : 'Output';
+            const l_sfc = res.isValid ? res.sfcLabel : 'SFC';
+
+            if(paramMainInst) { 
+                paramMainInst.data.labels=machArray; paramMainInst.data.datasets=mainDs; paramMainInst.options.scales.y.title.text=l_main; paramMainInst.update(); 
+            } else {
+                paramMainInst = new Chart(document.getElementById('paramMainChart').getContext('2d'), {
+                    type: 'line', data: { labels: machArray, datasets: mainDs },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { datalabels: { display: false } }, scales: { x: { title: { display: true, text: 'Mach M₀' } }, y: { title: { display: true, text: l_main } } } }
+                });
+            }
+            if(paramSfcInst) { 
+                paramSfcInst.data.labels=machArray; paramSfcInst.data.datasets=sfcDs; paramSfcInst.options.scales.y.title.text=l_sfc; paramSfcInst.update(); 
+            } else {
+                paramSfcInst = new Chart(document.getElementById('paramSfcChart').getContext('2d'), {
+                    type: 'line', data: { labels: machArray, datasets: sfcDs },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { datalabels: { display: false } }, scales: { x: { title: { display: true, text: 'Mach M₀' } }, y: { title: { display: true, text: l_sfc } } } }
+                });
+            }
+
+            // --- CONTOURS (CPR vs TIT) ---
+            const cprVals = [], titVals = [];
+            for(let c = 5; c <= 40; c += 1) cprVals.push(c);
+            for(let t = 1000; t <= 2000; t += 20) titVals.push(t);
+            const zMain = [], zSfcRaw = [];
+
+            let zMainMin = Infinity, zMainMax = -Infinity;
+            let zSfcMin = Infinity;
+
+            for(let i=0; i<titVals.length; i++) {
+                let rowM = [], rowS = [];
+                for(let j=0; j<cprVals.length; j++) {
+                    const tInp = {...inp, cpr: cprVals[j], T3: titVals[i]};
+                    if(currentEngine.startsWith('brayton')) tInp.T5 = titVals[i]; // Tie TIT2 to TIT1 for maps
+
+                    let tr;
+                    if(currentEngine==='turbojet') tr=solveTurbojet(tInp);
+                    else if(currentEngine==='turbofan') tr=solveTurbofan(tInp);
+                    else if(currentEngine==='turboprop') tr=solveTurbopropShaft(tInp, false);
+                    else if(currentEngine==='turboshaft') tr=solveTurbopropShaft(tInp, true);
+                    else if(currentEngine==='brayton_reheat') tr=solveStationary(tInp, false, true);
+                    else if(currentEngine==='brayton_regen') tr=solveStationary(tInp, true, false);
+                    else if(currentEngine==='brayton_rr') tr=solveStationary(tInp, true, true);
+
+                    if(tr.isValid && tr.mainVal > 0) { 
+                        rowM.push(tr.mainVal); rowS.push(tr.sfcVal); 
+                        if(tr.mainVal < zMainMin) zMainMin = tr.mainVal;
+                        if(tr.mainVal > zMainMax) zMainMax = tr.mainVal;
+                        if(tr.sfcVal < zSfcMin) zSfcMin = tr.sfcVal;
+                    } else { 
+                        rowM.push(null); rowS.push(null); 
+                    }
+                }
+                zMain.push(rowM); zSfcRaw.push(rowS);
+            }
+
+            // Cap SFC to prevent bad contours
+            const sfcCap = zSfcMin * 3.0; 
+            const zSfc = zSfcRaw.map(row => row.map(v => (v !== null && v > sfcCap) ? sfcCap : v));
+
+            const layoutC = { margin: { l: 60, r: 20, b: 40, t: 30 }, xaxis: { title: 'CPR' }, yaxis: { title: 'TIT [K]' } };
+            Plotly.newPlot('contourMain', [{ z: zMain, x: cprVals, y: titVals, type: 'contour', colorscale: 'Viridis', zmin: zMainMin, zmax: zMainMax, colorbar: {title: l_main.split(' ')[0]} }], Object.assign({}, layoutC, {title: l_main}), {responsive: true});
+            Plotly.newPlot('contourSFC', [{ z: zSfc, x: cprVals, y: titVals, type: 'contour', colorscale: 'Inferno', reversescale: true, zmin: zSfcMin, zmax: sfcCap, colorbar: {title: 'SFC'} }], Object.assign({}, layoutC, {title: l_sfc + " (Capped)"}), {responsive: true});
+        }
+
+        function exportToCSV() {
+            if (!globalData.results || !globalData.results.isValid) return alert("Calculate valid cycle first.");
+            const d = globalData;
+            
+            let csv = "\uFEFF--- UNIFIED ENGINE ANALYSIS REPORT ---\n\n";
+            csv += `Engine Type,${d.engine.toUpperCase()}\n\n`;
+
+            csv += "--- METRICS ---\n";
+            d.results.metrics.forEach(m => csv += `${m.t},${m.v},${m.u}\n`);
+
+            csv += "\n--- THERMODYNAMIC STATIONS ---\n";
+            csv += "Station,Description,Temperature (K),Pressure (kPa),Entropy (J/kgK),Velocity (m/s)\n";
+            d.results.stations.forEach(st => csv += `${st.st},${st.d},${st.T.toFixed(2)},${st.P.toFixed(2)},${st.s.toFixed(2)},${st.v.toFixed(1)}\n`);
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `${d.engine}_analysis.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        document.getElementById('engineSelector').addEventListener('change', updateUIState);
+        document.querySelectorAll('input[type="range"]').forEach(el => el.addEventListener('input', calculateAndRender));
+        
+        window.onload = updateUIState;
+    </script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(registration => {
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        })
+        .catch(err => {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+  }
+</script>
+
+</body>
+</html>
