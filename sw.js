@@ -1,4 +1,4 @@
-const CACHE_NAME = 'turbine-analyzer-v1';
+const CACHE_NAME = 'gas-turbine-analyzer-v1';
 const URLS_TO_CACHE = [
   './',
   './index.html',
