@@ -36,6 +36,8 @@ MathJax: Used for rendering complex LaTeX mathematical formulas.
 
 This application is a PWA, which means you can install it directly to your phone's home screen without needing to download anything.
 
+The link to the app is : https://tourlidakis-uowm.github.io/gt-app/
+
 Open the provided link using Chrome (Android) or Safari (iOS).
 
 Android: Tap the 3 vertical dots in the top right corner of the browser and select "Install app".
